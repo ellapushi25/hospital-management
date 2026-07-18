@@ -11,7 +11,7 @@ import java.sql.Statement;
  */
 public class Database {
 
-    private static final String DB_URL = "jdbc:sqlite:hospital.db";
+    private static final String DB_URL = System.getProperty("db.url", "jdbc:sqlite:hospital.db");
     private static Connection connection;
 
     static {
