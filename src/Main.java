@@ -59,12 +59,12 @@ public class Main {
         int c = readInt("Choose: ");
         switch (c) {
             case 1 -> {
-                String name = readString("Name: ");
-                int age = readInt("Age: ");
-                String gender = readString("Gender: ");
-                String phone = readString("Phone: ");
-                String address = readString("Address: ");
-                String disease = readString("Disease/Reason for visit: ");
+                String name = readNonEmptyString("Name: ");
+                int age = readAge("Age: ");
+                String gender = readNonEmptyString("Gender: ");
+                String phone = readNonEmptyString("Phone: ");
+                String address = readNonEmptyString("Address: ");
+                String disease = readNonEmptyString("Disease/Reason for visit: ");
                 String today = LocalDate.now().toString();
                 int id = patientDAO.addPatient(name, age, gender, phone, address, disease, today);
                 System.out.println("Patient added with ID: " + id);
@@ -83,7 +83,10 @@ public class Main {
             case 4 -> {
                 int id = readInt("Patient ID to update: ");
                 Patient existing = patientDAO.getPatientById(id);
-                if (existing == null) { System.out.println("Patient not found."); return; }
+                if (existing == null) {
+                    System.out.println("Patient not found.");
+                    return;
+                }
                 System.out.println("Leave blank to keep current value.");
                 String name = readStringDefault("Name [" + existing.getName() + "]: ", existing.getName());
                 int age = readIntDefault("Age [" + existing.getAge() + "]: ", existing.getAge());
@@ -99,7 +102,8 @@ public class Main {
                 boolean ok = patientDAO.deletePatient(id);
                 System.out.println(ok ? "Deleted." : "Patient not found.");
             }
-            case 0 -> { }
+            case 0 -> {
+            }
             default -> System.out.println("Invalid option.");
         }
     }
@@ -111,9 +115,9 @@ public class Main {
         int c = readInt("Choose: ");
         switch (c) {
             case 1 -> {
-                String name = readString("Name: ");
-                String spec = readString("Specialization: ");
-                String phone = readString("Phone: ");
+                String name = readNonEmptyString("Name: ");
+                String spec = readNonEmptyString("Specialization: ");
+                String phone = readNonEmptyString("Phone: ");
                 int id = doctorDAO.addDoctor(name, spec, phone);
                 System.out.println("Doctor added with ID: " + id);
             }
@@ -127,7 +131,8 @@ public class Main {
                 boolean ok = doctorDAO.deleteDoctor(id);
                 System.out.println(ok ? "Deleted." : "Doctor not found.");
             }
-            case 0 -> { }
+            case 0 -> {
+            }
             default -> System.out.println("Invalid option.");
         }
     }
@@ -140,10 +145,16 @@ public class Main {
         switch (c) {
             case 1 -> {
                 int patientId = readInt("Patient ID: ");
-                if (patientDAO.getPatientById(patientId) == null) { System.out.println("Patient not found."); return; }
+                if (patientDAO.getPatientById(patientId) == null) {
+                    System.out.println("Patient not found.");
+                    return;
+                }
                 int doctorId = readInt("Doctor ID: ");
-                if (doctorDAO.getDoctorById(doctorId) == null) { System.out.println("Doctor not found."); return; }
-                String date = readString("Appointment date (YYYY-MM-DD): ");
+                if (doctorDAO.getDoctorById(doctorId) == null) {
+                    System.out.println("Doctor not found.");
+                    return;
+                }
+                String date = readDate("Appointment date (YYYY-MM-DD): ");
                 int id = appointmentDAO.bookAppointment(patientId, doctorId, date);
                 System.out.println("Appointment booked with ID: " + id);
             }
@@ -163,7 +174,8 @@ public class Main {
                 boolean ok = appointmentDAO.cancelAppointment(id);
                 System.out.println(ok ? "Cancelled." : "Appointment not found.");
             }
-            case 0 -> { }
+            case 0 -> {
+            }
             default -> System.out.println("Invalid option.");
         }
     }
@@ -176,8 +188,11 @@ public class Main {
         switch (c) {
             case 1 -> {
                 int patientId = readInt("Patient ID: ");
-                if (patientDAO.getPatientById(patientId) == null) { System.out.println("Patient not found."); return; }
-                String desc = readString("Description (e.g. Consultation, X-Ray): ");
+                if (patientDAO.getPatientById(patientId) == null) {
+                    System.out.println("Patient not found.");
+                    return;
+                }
+                String desc = readNonEmptyString("Description (e.g. Consultation, X-Ray): ");
                 double amount = readDouble("Amount: $");
                 String today = LocalDate.now().toString();
                 int id = billDAO.addBill(patientId, desc, amount, today);
@@ -198,7 +213,8 @@ public class Main {
                 boolean ok = billDAO.markAsPaid(id);
                 System.out.println(ok ? "Marked as paid." : "Bill not found.");
             }
-            case 0 -> { }
+            case 0 -> {
+            }
             default -> System.out.println("Invalid option.");
         }
     }
@@ -249,4 +265,34 @@ public class Main {
         String line = sc.nextLine().trim();
         return line.isEmpty() ? def : line;
     }
+
+    // ---------------- NEW VALIDATION HELPERS ----------------
+    private static String readDate(String prompt) {
+        while (true) {
+            String line = readString(prompt);
+            try {
+                LocalDate.parse(line);
+                return line;
+            } catch (Exception e) {
+                System.out.println("Invalid date format. Use YYYY-MM-DD (e.g. 2026-07-20).");
+            }
+        }
+    }
+
+    private static String readNonEmptyString(String prompt) {
+        while (true) {
+            String line = readString(prompt);
+            if (!line.isEmpty()) return line;
+            System.out.println("This field cannot be empty.");
+        }
+    }
+
+    private static int readAge(String prompt) {
+        while (true) {
+            int age = readInt(prompt);
+            if (age >= 0 && age <= 130) return age;
+            System.out.println("Age must be between 0 and 130.");
+        }
+    }
 }
+
